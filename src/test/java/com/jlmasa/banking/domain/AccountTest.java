@@ -15,7 +15,7 @@ class AccountTest {
     void debitReducesBalance(){
         var a = account("100.00");
         a.debit(new BigDecimal("30.00"));
-        assertThat(a.getbalance()).isEqualByComparingTo("70.00");
+        assertThat(a.getBalance()).isEqualByComparingTo("70.00");
     }
 
     @Test
@@ -29,13 +29,13 @@ class AccountTest {
     void debitBeyondBalanceIsRejectedAndBalanceIsUnchanged(){
         var a = account("10.00");
         assertThatThrownBy(()-> a.debit(new BigDecimal("10.01"))).isInstanceOf(InsufficientFundsException.class);
-        assertThat(a.getBalance()).isEqualByComparingTO("10.00");
+        assertThat(a.getBalance()).isEqualByComparingTo("10.00");
     }
     @Test
     void creditIncreaseBalance(){
         var a = account("10.00");
         a.credit(new BigDecimal("0.10"));
-        assertThat(a.getBalance()).IsEqualByComparingTo("10.10");
+        assertThat(a.getBalance()).isEqualByComparingTo("10.10");
     }
     @Test
     void zeroAndNegativeAmountsAreRejected(){
