@@ -3,7 +3,7 @@ CREATE TABLE accounts (
     owner VARCHAR(60) NOT NULL,
     balance NUMERIC(19,4) NOT NULL CHECK (balance >= 0),
     version BIGINT NOT NULL DEFAULT 0,
-    created_at TIMESTAMPZ NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_accounts_owner ON accounts (owner);
 
@@ -16,7 +16,7 @@ CREATE TABLE transfers (
     to_account BIGINT NOT NULL REFERENCES accounts(id),
     amount NUMERIC(19,4) NOT NULL CHECK(amount> 0),
     status VARCHAR(20) NOT NULL DEFAULT 'COMPLETED',
-    created_at TIMESTAMPZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT uq_transfer_idempotency UNIQUE (requested_by, idempotency_key),
     CONSTRAINT chk_different_accounts CHECK (from_account <> to_account)
 );
@@ -27,7 +27,7 @@ CREATE TABLE ledger_entries(
     account_id BIGINT NOT NULL REFERENCES accounts(id),
     amount NUMERIC(19,4) NOT NULL,
     reason VARCHAR(30) NOT NULL,
-    created_at NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_ledger_accounts ON ledger_entries (account_id, id DESC);
@@ -37,7 +37,7 @@ CREATE TABLE audit_log(
     actor VARCHAR(60) NOT NULL,
     action VARCHAR(40) NOT NULL,
     detail VARCHAR(500) NOT NULL,
-    created_at TIMESTAMPZ NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE FUNCTION forbid_change() RETURNS trigger AS $$

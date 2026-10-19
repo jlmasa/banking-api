@@ -6,4 +6,4 @@ services:
       POSTGRES_USER: banking
       POSTGRES_PASSWORD: banking
     ports:
-      [5492:5492]
+      [5492:5432]
