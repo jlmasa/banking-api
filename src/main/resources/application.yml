@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5492/banking
+    username: banking
+    password: banking
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  app:
+    demo-password: ${DEMO_PASSWORD:dev-only-password}
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info
