@@ -1,0 +1,9 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: banking
+      POSTGRES_USER: banking
+      POSTGRES_PASSWORD: banking
+    ports:
+      [5492:5492]
