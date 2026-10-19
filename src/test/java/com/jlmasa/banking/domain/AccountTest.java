@@ -22,7 +22,7 @@ class AccountTest {
     void debitOfTheExactBalanceLeaveZero() {
         var a = account("10.00");
         a.debit(new BigDecimal(10.00));
-        assertThat(a.getBalance()).isEqualByComparingTo("70.00");
+        assertThat(a.getBalance()).isEqualByComparingTo("0");
     }
 
     @Test
