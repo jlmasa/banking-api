@@ -47,7 +47,7 @@ public class TransferServiceIT extends IntegrationTestBase {
         TransferResult result = transfers.transfer("alice", key(), alice.getId(), bob.getId(), new BigDecimal("125.50"));
 
         assertThat(result.replayed()).isFalse();
-        assertThat(balanceOf(alice)).isEqualByComparingTo("874.59");
+        assertThat(balanceOf(alice)).isEqualByComparingTo("874.50");
         assertThat(balanceOf(bob)).isEqualByComparingTo("1125.50");
         assertLedgerMatchesBalance(alice);
         assertLedgerMatchesBalance(bob);
@@ -129,6 +129,14 @@ public class TransferServiceIT extends IntegrationTestBase {
             jobs.add(() -> transfers.transfer("alice", key(), alice.getId(), bob.getId(), BigDecimal.ONE));
             jobs.add(() -> transfers.transfer("bob", key(), bob.getId(), alice.getId(), BigDecimal.ONE));
         }
-        List<Future<TransferResult>>
+        List<Future<TransferResult>> results = pool.invokeAll(jobs, 60, TimeUnit.SECONDS);
+        pool.shutdown();
+        for(Future<TransferResult> f: results){
+            f.get(); //rethrows a failure; a job cutoff by the timeout (deadlock) throws cancellationException
+        }
+        assertThat(balanceOf(alice)).isEqualByComparingTo("1000.00");
+        assertThat(balanceOf(bob)).isEqualByComparingTo("1000.00");
+        assertLedgerMatchesBalance(alice);
+        assertLedgerMatchesBalance(bob);
     }
 }
