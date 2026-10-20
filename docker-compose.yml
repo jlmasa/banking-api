@@ -6,4 +6,20 @@ services:
       POSTGRES_USER: banking
       POSTGRES_PASSWORD: banking
     ports:
-      [5492:5432]
+      [5432:5432]
+    healthcheck:
+      test: ["CMD-SHELL", "pg-isready -U banking -d banking"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+        SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/banking
+        SPRING_DATASOURCE_USERNAME: banking
+        SPRING_DATASOURCE_PASSWORD: banking
+        DEMO_PASSWORD: ${DEMO_PASSWORD:-dev-only-password}
+    ports: [ "8080:8080" ]
