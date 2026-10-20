@@ -76,27 +76,33 @@ public class TransferService {
     }
 
     @Transactional(readOnly = true)
-    public TransferResult replayExisting(String caller, String key, Long fromId, Long toId, BigDecimal rawAmount){
+    public TransferResult replayExisting(String caller, String key, Long
+            fromId, Long toId, BigDecimal rawAmount) {
         BigDecimal amount = rawAmount.setScale(2, RoundingMode.UNNECESSARY);
-        return transfers.findByRequestedByAndIdempotencyKey(caller,key)
-                .map(t -> replay(t, fingerprint(fromId, toId,amount)))
+        return transfers.findByRequestedByAndIdempotencyKey(caller, key)
+                .map(t -> replay(t, fingerprint(fromId, toId, amount)))
                 .orElseThrow(() -> new IllegalStateException("Transfer vanished after key conflict"));
     }
+
     private TransferResult replay(Transfer stored, String hash){
         if (!stored.getRequestHash().equals(hash)){
             throw new IdempotencyConflictException();
         }
         return new TransferResult(stored, true);
     }
-    private Account lock(Long id){
-        return accounts.findByIdForUpdate(id).orElseThrow(() -> new AccountNotFoundException(id));
+    private Account lock(Long id) {
+        return accounts.findByIdForUpdate(id).orElseThrow(() -> new
+                AccountNotFoundException(id));
     }
-    private static String fingerprint(Long from, Long to, BigDecimal amount){
-        try{
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest((from + "|" + to +"|" + amount.toPlainString()).getBytes(StandardCharsets.UTF_8));
+
+    private static String fingerprint(Long from, Long to, BigDecimal amount)
+    {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest((from + "|" + to + "|" + amount.toPlainString()).getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(digest);
-        }catch(NoSuchAlgorithmException e){
+        } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);
         }
     }
+
 }

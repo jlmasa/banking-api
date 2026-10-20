@@ -28,25 +28,33 @@ public class AccountService {
     }
 
     @Transactional
-    public Account open(String actor, String owner, BigDecimal openingBalance){
+    public Account open(String actor, String owner, BigDecimal
+            openingBalance) {
         Account account = accounts.save(new Account(owner, openingBalance));
-        if(openingBalance.signum() > 0){
-            //the opening deposit is a ledger entry too, so balance == sum(ledger) always holds.
-            ledger.save(new LedgerEntry(null, account.getId(), openingBalance, "OPENING DEPOSIT"));
+        if (openingBalance.signum() > 0) {
+// the opening deposit is a ledger entry too, so balance ==sum(ledger) always holds
+            ledger.save(new LedgerEntry(null, account.getId(),
+                    openingBalance, "OPENING_DEPOSIT"));
         }
-        audit.save(new AuditLog(actor, "ACCOUNT_OPENED", "account= " + account.getId() + "owner= "+ owner));
+        audit.save(new AuditLog(actor, "ACCOUNT_OPENED", "account=" +
+                account.getId() + " owner=" + owner));
         return account;
     }
+
     /** Returns the account only if the caller owns it. Strangers get "not found", not "forbidden". */
 
     @Transactional(readOnly = true)
     public Account getOwned(Long id, String caller){
-        return accounts.findById(id).filter( a -> a.getOwner().equals(caller)).orElseThrow(() -> new AccountNotFoundException(id));
+        return accounts.findById(id)
+                .filter(a -> a.getOwner().equals(caller))
+                .orElseThrow(() -> new AccountNotFoundException(id));
     }
 
     @Transactional(readOnly = true)
-    public Page<LedgerEntry> ledger(Long id, String caller, Pageable pageable){
+    public Page<LedgerEntry> ledger(Long id, String caller, Pageable
+            pageable) {
         getOwned(id, caller);
         return ledger.findByAccountId(id, pageable);
     }
+
 }

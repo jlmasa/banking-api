@@ -17,7 +17,7 @@ import java.util.concurrent.*;
 
 import static org.assertj.core.api.Assertions.*;
 
-public class TransferServiceIT extends IntegrationTestBase {
+class TransferServiceIT extends IntegrationTestBase {
 
     @Autowired AccountService accounts;
     @Autowired TransferFacade transfers;
