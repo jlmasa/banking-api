@@ -4,6 +4,10 @@ import com.jlmasa.banking.domain.Account;
 import com.jlmasa.banking.service.AccountService;
 import com.jlmasa.banking.service.TransferFacade;
 import com.jlmasa.banking.service.TransferResult;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -48,17 +52,22 @@ public class BankController {
     public Page<LedgerEntryResponse> ledger(@PathVariable Long id, Authentication auth, @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC)Pageable pageable){
         return accounts.ledger(id, auth.getName(), pageable).map(LedgerEntryResponse::from);
     }
+
+    @Operation(summary = "Move money between two accounts", description = "Safe to retry : repeating request with the same Idempotency-key returns the original Results.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Money moved"), @ApiResponse(responseCode = "200", description = "Repeat of an earlier request; nothing moved again"),
+            @ApiResponse(responseCode = "400", description = "Invalid amount, ids or missing key"),@ApiResponse(responseCode = "403", description = "Source account belongs to someone else"),
+            @ApiResponse(responseCode = "409", description = "Key already used with a different request"), @ApiResponse(responseCode = "422", description = "insufficient funds")
+    })
     @PostMapping("/transfers")
-    public ResponseEntity<TransferResponse> transfer(Authentication auth, @RequestHeader("Idempotency-Key") @NotBlank @Size(max = 80) String key,
-    @Valid @RequestBody TransferRequest req){
-        TransferResult result = transfers.transfer(
-                auth.getName(), key, req.fromAccountId(), req.toAccountId(), req.amount()
-        );
+    public ResponseEntity<TransferResponse> transfer(Authentication auth, @Parameter(description = "Unique per logical request, for example a UUID")
+                                                     @RequestHeader("Idempotency-Key") @NotBlank @Size(max = 80) String key,
+                                                     @Valid @RequestBody TransferRequest req){
+        TransferResult result = transfers.transfer(auth.getName(), key, req.fromAccountId(), req.toAccountId(), req.amount());
         TransferResponse body = TransferResponse.from(result.transfer());
         if(result.replayed()){
             return ResponseEntity.ok().header("Idempotent-Replay", "true").body(body);
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
-        //201: money moved.
     }
 }
